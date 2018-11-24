@@ -1,7 +1,7 @@
 <nav>
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a routerLink="/">Home</a></li>
-        <li class="breadcrumb-item"><a routerLink="/categories">Lançamentos</a></li>
+        <li class="breadcrumb-item"><a routerLink="/entries">Lançamentos</a></li>
         <li class="breadcrumb-item active">{{pageTitle}}</li>
     </ol>
 </nav>
@@ -33,8 +33,7 @@
                 <div class="form-group col-md-2">
                     <label for="type">Tipo</label>
                     <select name="type" id="type" formControlName="type" class="form-control">
-                        <option value="expense">Despesa</option>
-                        <option value="revenue">Receita</option>
+                        <option *ngFor="let option of typeOptions" [value]="option.value">{{option.text}}</option>
                     </select>
 
                     <div class="text-danger" *ngIf="entryForm.get('type').invalid && entryForm.get('type').touched">
@@ -72,14 +71,14 @@
 
                 <div class="form-group col-md-2">
                     <label for="date">Data</label>
-                    <p-calendar id="date"
-                                inputStyleClass="form-control"
-                                dataType="string"
-                                dateFormat="dd/mm/yy"
-                                [locale]="ptBR"
-                                [showButtonBar]="true"
-                                [formControlName]="date">
-
+                    <p-calendar
+                            id="date"
+                            formControlName="date"
+                            inputStyleClass="form-control"
+                            dataType="string"
+                            dateFormat="dd/mm/yy"
+                            [locale]="ptBR"
+                            [showButtonBar]="true">
                     </p-calendar>
 
                     <div class="text-danger" *ngIf="entryForm.get('date').invalid && entryForm.get('date').touched">
@@ -90,15 +89,32 @@
             </div>
 
 
-            <div class="form-row">
-                <div class="form-group col-md-2">
-                    <label (click)="entryForm.get('paid').setValue(true)" [class.active]="entryForm.get('paid').value == true" class="btn btn-outline-info mr-1" >Pago</label>
-                    <label (click)="entryForm.get('paid').setValue(false)" [class.active]="entryForm.get('paid').value == false" class="btn btn-outline-info">Pendente</label>
+            <div class="form-row d-flex align-items-center">
+                <div class="form-group col-md-2 ">
+                    <label (click)="entryForm.get('paid').setValue(true)"
+                           [class.active]="entryForm.get('paid').value == true"
+                           class="btn btn-outline-info mr-1" >Pago
+                    </label>
+                    <label (click)="entryForm.get('paid').setValue(false)"
+                           [class.active]="entryForm.get('paid').value == false"
+                           class="btn btn-outline-info">Pendente
+                    </label>
 
 
-                    <div class="text-danger" *ngIf="entryForm.get('amount').invalid && entryForm.get('amount').touched">
-                        <div *ngIf="entryForm.get('amount').errors.required">Dado Obrigatório</div>
-                        <div *ngIf="entryForm.get('amount').errors.minlength">No Minimo 2 caracteres</div>
+                    <div class="text-danger" *ngIf="entryForm.get('paid').invalid && entryForm.get('paid').touched">
+                        <div *ngIf="entryForm.get('paid').errors.required">dado obrigatório</div>
+                    </div>
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label for="categoryId">Categoria</label>
+                    <select name="categoryId" id="categoryId" formControlName="categoryId" class="form-control">
+                        <option *ngFor="let cat of categories" [value]="cat.id">{{cat.name}}</option>
+                    </select>
+
+                    <div class="text-danger" *ngIf="entryForm.get('type').invalid && entryForm.get('categoryId').touched">
+                        <div *ngIf="entryForm.get('categoryId').errors.required">Dado Obrigatório</div>
+                        <div *ngIf="entryForm.get('categoryId').errors.minlength">No Minimo 2 caracteres</div>
                     </div>
                 </div>
             </div>

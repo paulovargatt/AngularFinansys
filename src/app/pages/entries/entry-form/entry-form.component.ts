@@ -5,6 +5,8 @@ import {EntryModel} from '../shared/entry.model';
 import {EntryService} from '../shared/entry.service';
 import {switchMap} from 'rxjs/operators';
 import toastr from 'toastr';
+import {CategoryModel} from '../../categories/shared/category.model';
+import {CategoryService} from '../../categories/shared/category.service';
 
 @Component({
     selector: 'app-entry-form',
@@ -19,6 +21,7 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
     serverErrorMessage: string[] = null;
     submitingForm = false;
     entry: EntryModel = new EntryModel();
+    categories: Array<CategoryModel>;
 
     imaskConfig = {
         mask: Number,
@@ -40,12 +43,14 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
         monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
         today: 'Hoje',
         clear: 'Limpar'
-    }
+    };
+
 
     constructor(
         private entryService: EntryService,
         private route: ActivatedRoute,
         private router: Router,
+        private categoryService: CategoryService,
         private formBuilder: FormBuilder
     ) {
     }
@@ -54,6 +59,8 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
         this.setCurrentAction();
         this.buildEntryForm();
         this.loadEntry();
+
+        this.loadCategories();
     }
 
     ngAfterContentChecked() {
@@ -69,6 +76,16 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
         }
     }
 
+    get typeOptions(): Array<any> {
+        return Object.entries(EntryModel.types).map(
+            ([value, text]) => {
+                return {
+                    text: text,
+                    value: value,
+                };
+            });
+    }
+
     // Private
     private setCurrentAction() {
         if (this.route.snapshot.url[0].path === 'new') {
@@ -78,15 +95,21 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
         }
     }
 
+    private loadCategories() {
+        this.categoryService.getAll().subscribe(
+            categories => this.categories = categories
+        );
+    }
+
     private buildEntryForm() {
         this.entryForm = this.formBuilder.group({
             id: [null],
             name: [null, [Validators.required, Validators.minLength(2)]],
             description: [null],
-            type: [null, [Validators.required]],
+            type: ['expense', [Validators.required]],
             amount: [null, [Validators.required]],
             date: [null, [Validators.required]],
-            paid: [null, [Validators.required]],
+            paid: [true, [Validators.required]],
             categoryId: [null, [Validators.required]],
 
         });
@@ -96,12 +119,13 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
         if (this.currentAction === 'edit') {
             this.route.paramMap.pipe(
                 switchMap(params => this.entryService.getById(+params.get('id')))
-            ).subscribe((entry) => {
-                this.entry = entry;
-                this.entryForm.patchValue(entry);
-            }, () => {
-                alert('ocorreu um erro');
-            });
+            ).subscribe(
+                (entry) => {
+                    this.entry = entry;
+                    this.entryForm.patchValue(entry); // binds loaded entry data to EntryForm
+                },
+                (error) => alert('Ocorreu um erro no servidor, tente mais tarde.')
+            );
         }
     }
 
